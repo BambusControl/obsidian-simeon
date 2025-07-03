@@ -1,5 +1,6 @@
 import {RootDataStore} from "../rootDataStore";
 import {DataInitializer} from "../dataInitializer";
+import {initializationData} from "../../../libraries/data/initializationData";
 
 export class NewDataInitializer implements DataInitializer {
     constructor(
@@ -28,6 +29,22 @@ export class NewDataInitializer implements DataInitializer {
 
         console.info("Flagging local data as initialized");
         await this.dataStore.setInitialized(true);
+    }
+
+    private async initializeEmbeddingData() {
+        const embeddingDataInitialized = (await this.dataStore.getEmbeddingData()).initialized;
+
+        if (embeddingDataInitialized) {
+            console.info("EmbeddingData data already initialized");
+            return;
+        }
+
+        console.info("EmbeddingData initialization");
+
+        await this.dataStore.overwriteEmbeddingData({
+            ...initializationData().embedding,
+            initialized: true,
+        });
     }
 
 }

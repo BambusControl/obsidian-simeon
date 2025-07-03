@@ -3,6 +3,7 @@ import {CURRENT_VERSION, SaveData} from "../../../libraries/types/savedata/saveD
 import {PluginDataLoader} from "../../../libraries/types/pluginDataLoader";
 import {importData} from "../../../libraries/helpers/importData";
 import {RootDataStore} from "../rootDataStore";
+import {EmbeddingData} from "../../../libraries/types/savedata/embeddingData";
 
 export class RootPluginDataStorage implements RootDataStore {
 
@@ -37,7 +38,7 @@ export class RootPluginDataStorage implements RootDataStore {
         return saveDataVersion === CURRENT_VERSION;
     }
 
-    private async mergeData(data: Partial<SaveData>): Promise<SaveData> {
+    private async mergeData(data: Partial<SaveData>, persist = true): Promise<SaveData> {
         const storedData = await this.storedData.get();
 
         const newData: SaveData = {
@@ -47,6 +48,21 @@ export class RootPluginDataStorage implements RootDataStore {
         };
 
         this.storedData.set(newData);
-        return await this.storedData.persist();
+
+        return persist
+            ? await this.storedData.persist()
+            : newData;
+    }
+
+    async getEmbeddingData(): Promise<EmbeddingData> {
+        return (await this.storedData.get()).embedding;
+    }
+
+    async overwriteEmbeddingData(embeddingData: EmbeddingData): Promise<EmbeddingData> {
+        const mergedData = await this.mergeData({
+            embedding: embeddingData,
+        });
+
+        return mergedData.embedding;
     }
 }

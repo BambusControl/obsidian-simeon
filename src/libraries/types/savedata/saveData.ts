@@ -1,10 +1,11 @@
 import {Initializable} from "./initializable";
+import {FileEmbedding} from "../fileEmbedding";
+import {EmbeddingData} from "./embeddingData";
 
 export interface SaveData extends Initializable {
     version: SaveDataVersion;
 
-    // TODO
-    data: any;
+    embedding: EmbeddingData;
 }
 
 /**

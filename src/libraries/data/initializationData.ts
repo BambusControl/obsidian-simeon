@@ -5,6 +5,9 @@ export function initializationData(): SaveData {
         initialized: false,
         version: CURRENT_VERSION,
 
-        data: {}
+        embedding: {
+            initialized: false,
+            embeddings: [],
+        }
     }
 }
