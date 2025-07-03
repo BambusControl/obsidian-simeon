@@ -1,0 +1,10 @@
+{
+	"id": "simeon",
+	"name": "Simeon",
+	"version": "0.1.0",
+	"minAppVersion": "1.5.12",
+	"description": "Search with simeon",
+	"author": "BambusControl",
+	"authorUrl": "https://github.com/BambusControl",
+	"isDesktopOnly": false
+}
