@@ -11,7 +11,7 @@ import {cosineSimilarity} from "./cosineSimilarity";
 import {readVaultFile} from "./readVaultFile";
 import {splitIntoChunks} from "./splitIntoChunks";
 import {CounterView} from "./components/counterView";
-import {ExampleView, VIEW_TYPE_EXAMPLE} from "./components/exampleView";
+import {SearchView, SEARCH_VIEW_TYPE} from "./components/searchView";
 
 
 const fancySplitter = new MarkdownTextSplitter({
@@ -50,14 +50,14 @@ export default class SimeonPlugin extends Plugin {
         ));
 
         this.registerView(
-          VIEW_TYPE_EXAMPLE,
-          (leaf) => new ExampleView(leaf)
+          SEARCH_VIEW_TYPE,
+          (leaf) => new SearchView(leaf)
         );
 
         this.addRibbonIcon("search", "Open Search Panel", async () => {
             const {workspace} = this.app;
 
-            const leaves = workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE);
+            const leaves = workspace.getLeavesOfType(SEARCH_VIEW_TYPE);
             let leaf: WorkspaceLeaf | null = null;
 
             if (leaves.length >= 1) {
@@ -65,7 +65,7 @@ export default class SimeonPlugin extends Plugin {
             } else {
                 leaf = workspace.getLeftLeaf(false);
                 if (leaf != null) {
-                    await leaf.setViewState({type: VIEW_TYPE_EXAMPLE, active: true});
+                    await leaf.setViewState({type: SEARCH_VIEW_TYPE, active: true});
                 }
             }
 
