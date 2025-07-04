@@ -20,6 +20,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "@langchain/textsplitters": "^0.1.0"
   },
   "devDependencies": {
     "@types/jest": "^29",

@@ -1,85 +1,23 @@
-import {App, normalizePath, Plugin, PluginManifest, requestUrl, Vault} from "obsidian";
+import {App, normalizePath, Plugin, PluginManifest} from "obsidian";
 import {SettingTab} from "./components/settingTab";
 import {RootPluginDataStorage} from "./services/impl/rootPluginDataStorage";
 import {NewDataInitializer} from "./services/impl/newDataInitializer";
 import {FileEmbedding} from "../libraries/types/fileEmbedding";
-import {Chunk} from "../libraries/types/chunk";
 import {EmbeddingStorage} from "./services/impl/embeddingStorage";
-import {Arr} from "tern";
+import {MarkdownTextSplitter} from "@langchain/textsplitters";
+import {CHUNK_OVERLAP, CHUNK_SIZE} from "./constants";
+import {fetchEmbedding} from "./fetchEmbedding";
+import {cosineSimilarity} from "./cosineSimilarity";
+import {readVaultFile} from "./readVaultFile";
+import {splitIntoChunks} from "./splitIntoChunks";
 
 
-const OLLAMA_HOST = "http://niks.local:13000";
-const OLLAMA_MODEL = "nomic-embed-text:latest";
-const CHUNK_SIZE = 400;
-const CHUNK_OVERLAP = 200;
+const fancySplitter = new MarkdownTextSplitter({
+    chunkSize: CHUNK_SIZE,
+    chunkOverlap: CHUNK_OVERLAP,
+});
 
 /* Used by Obsidian */
-async function fetchOllamaModels(): Promise<void> {
-    const responseModels = await requestUrl({
-        url: `${OLLAMA_HOST}/api/tags`,
-        method: "GET",
-    }).json;
-
-    console.log(responseModels.models);
-}
-
-async function fetchEmbedding(text: string, isQuery = false): Promise<[number]> {
-    const prefix: string = isQuery ? "search_query" : "search_document" + ": ";
-    const prompt = prefix + text;
-
-    const responseEmbedding = await requestUrl({
-        url: `${OLLAMA_HOST}/api/embeddings`,
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            model: OLLAMA_MODEL,
-            prompt: prompt
-        })
-    }).json;
-
-
-    const embedding = responseEmbedding.embedding as [number];
-    return embedding;
-}
-
-function* splitIntoChunks(content: string): Generator<Chunk<string>, number, void> {
-    let chunkCount = 0;
-
-    for (let i = 0; i < content.length; i += CHUNK_SIZE - CHUNK_OVERLAP) {
-        const slicedString = content.slice(i, i + CHUNK_SIZE);
-
-        yield {
-            chunkNo: chunkCount,
-            start: i,
-            end: i + CHUNK_SIZE,
-            content: slicedString
-        } as Chunk<string>;
-
-        chunkCount++;
-    }
-
-    return chunkCount;
-}
-
-export function cosineSimilarity(vec1: number[], vec2: number[]): number {
-    const dotProduct = vec1.reduce((acc, val, i) => acc + val * vec2[i], 0);
-    const mag1 = Math.sqrt(vec1.reduce((acc, val) => acc + val * val, 0));
-    const mag2 = Math.sqrt(vec2.reduce((acc, val) => acc + val * val, 0));
-    return dotProduct / (mag1 * mag2);
-}
-
-async function readVaultFile(vault: Vault, filepath: string): Promise<string> {
-    const file = vault.getFileByPath(filepath);
-
-    if (file == null) {
-        return "";
-    }
-
-    return await vault.cachedRead(file);
-}
-
 // noinspection JSUnusedGlobalSymbols
 export default class SimeonPlugin extends Plugin {
 
@@ -170,9 +108,12 @@ export default class SimeonPlugin extends Plugin {
 
                 for (const file of files) {
                     const contents = await this.app.vault.cachedRead(file);
-
                     console.log(`Processing ${file.path}`);
 
+                    const fancySplit = await fancySplitter.splitText(contents)
+                    console.log({fancySplit});
+
+                    continue;
                     for (const chunk of splitIntoChunks(contents)) {
                         const chunkEmbedding = await fetchEmbedding(chunk.content, false);
 
