@@ -1,8 +1,8 @@
-import {App, normalizePath, Plugin, PluginManifest} from "obsidian";
+import {App, normalizePath, Plugin, type PluginManifest, type WorkspaceLeaf} from "obsidian";
 import {SettingTab} from "./components/settingTab";
 import {RootPluginDataStorage} from "./services/impl/rootPluginDataStorage";
 import {NewDataInitializer} from "./services/impl/newDataInitializer";
-import {FileEmbedding} from "../libraries/types/fileEmbedding";
+import {type FileEmbedding} from "../libraries/types/fileEmbedding";
 import {EmbeddingStorage} from "./services/impl/embeddingStorage";
 import {MarkdownTextSplitter} from "@langchain/textsplitters";
 import {CHUNK_OVERLAP, CHUNK_SIZE} from "./constants";
@@ -10,6 +10,8 @@ import {fetchEmbedding} from "./fetchEmbedding";
 import {cosineSimilarity} from "./cosineSimilarity";
 import {readVaultFile} from "./readVaultFile";
 import {splitIntoChunks} from "./splitIntoChunks";
+import {CounterView} from "./components/counterView";
+import {ExampleView, VIEW_TYPE_EXAMPLE} from "./components/exampleView";
 
 
 const fancySplitter = new MarkdownTextSplitter({
@@ -46,6 +48,32 @@ export default class SimeonPlugin extends Plugin {
             this.app,
             this,
         ));
+
+        this.registerView(
+          VIEW_TYPE_EXAMPLE,
+          (leaf) => new ExampleView(leaf)
+        );
+
+        this.addRibbonIcon("search", "Open Search Panel", async () => {
+            const {workspace} = this.app;
+
+            const leaves = workspace.getLeavesOfType(VIEW_TYPE_EXAMPLE);
+            let leaf: WorkspaceLeaf | null = null;
+
+            if (leaves.length >= 1) {
+                leaf = leaves[0];
+            } else {
+                leaf = workspace.getLeftLeaf(false);
+                if (leaf != null) {
+                    await leaf.setViewState({type: VIEW_TYPE_EXAMPLE, active: true});
+                }
+            }
+
+            if (leaf != null) {
+                //noinspection ES6MissingAwait (intentional)
+                workspace.revealLeaf(leaf);
+            }
+        });
 
         this.addCommand({
             id: "search",
@@ -100,20 +128,20 @@ export default class SimeonPlugin extends Plugin {
             name: "Create search index",
             callback: async () => {
                 const files = this.app.vault.getMarkdownFiles();
-                const toWrite: FileEmbedding[] = new Array(50)
-                let toWriteCount = 0
-                const jobsToWait = []
+                const toWrite: FileEmbedding[] = new Array(50);
+                let toWriteCount = 0;
+                const jobsToWait = [];
 
                 console.group("Creating search index");
 
                 for (const file of files) {
                     const contents = await this.app.vault.cachedRead(file);
                     console.log(`Processing ${file.path}`);
+                    continue;
 
-                    const fancySplit = await fancySplitter.splitText(contents)
+                    const fancySplit = await fancySplitter.splitText(contents);
                     console.log({fancySplit});
 
-                    continue;
                     for (const chunk of splitIntoChunks(contents)) {
                         const chunkEmbedding = await fetchEmbedding(chunk.content, false);
 
@@ -135,7 +163,7 @@ export default class SimeonPlugin extends Plugin {
                 }
 
                 toWrite.length = toWriteCount;
-                jobsToWait.push(embeddingStore.overwriteFileEmbeddings(toWrite))
+                jobsToWait.push(embeddingStore.overwriteFileEmbeddings(toWrite));
 
                 console.log("Waiting for all jobs to finish");
                 await Promise.all(jobsToWait);
