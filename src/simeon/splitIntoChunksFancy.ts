@@ -4,8 +4,9 @@ import type {Chunk} from "../libraries/types/chunk";
 import {getFrontMatterInfo} from "obsidian";
 
 const llmSplitter = new Splitter({
-    maxLength: CHUNK_SIZE,
-    overlap: CHUNK_OVERLAP,
+    minLength: 40,
+    maxLength: 400,
+    overlap: 40,
     splitter: "sentence",
 });
 
@@ -36,9 +37,9 @@ export function* splitIntoChunksFancy(content: string): Generator<Chunk<string>,
     const offset = currentPosition;
 
     const splits = llmSplitter.split(justContent);
-    const pairedSplits = pairItems(splits, 2);
+    //const pairedSplits = pairItems(splits, 3);
 
-    for (const split of pairedSplits) {
+    for (const split of splits) {
         const splitStart = content.indexOf(split, currentPosition);
         const splitEnd = splitStart + split.length;
 
@@ -69,5 +70,12 @@ export function* splitIntoChunksFancy(content: string): Generator<Chunk<string>,
  * @param count
  */
 function pairItems(items: string[], count: number) {
+    const result: string[] = [];
 
+    for (let i = 0; i < items.length; i += count) {
+        const group = items.slice(i, i + count);
+        result.push(group.join(""));
+    }
+
+    return result;
 }

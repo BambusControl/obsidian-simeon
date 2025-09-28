@@ -2,6 +2,7 @@ import {debounce, ItemView, SearchComponent, setIcon, TFile, type Vault, Workspa
 import {search_embedding_query} from "../search_embedding_query";
 import type {EmbeddingStorage} from "../services/impl/embeddingStorage";
 import type {Chunk} from "../../libraries/types/chunk";
+import {openFileAndHighlight} from "../openFileAndHighlight";
 
 export const SEARCH_VIEW_TYPE = "simeon-search-view";
 export const COUNT_VIEW_TYPE = "simeon-count-view";
@@ -90,6 +91,7 @@ export class SearchView extends ItemView {
     }
 
     displayResults(results: SearchResult[]) {
+        // TODO: add the similarity score to the results
 
         this.resultsContainer.empty();
         this.resultsCountEl.children[0].setText(`${results.length} result${results.length !== 1 ? "s" : ""}`);
@@ -140,7 +142,8 @@ export class SearchView extends ItemView {
                 snippetEl.createSpan({text: after});
 
                 snippetEl.addEventListener("click", () => {
-                    this.app.workspace.getLeaf().openFile(result.file);
+                    //this.app.workspace.getLeaf().openFile(result.file);
+                    openFileAndHighlight(this.app, result.file, result.match.position[0], result.match.position[1])
                 });
             }
         }

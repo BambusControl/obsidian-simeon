@@ -47,18 +47,24 @@ export async function search_embedding_query(vault: Vault, embeddingStore: Embed
 
     for (const result of topScores) {
         const content = await readVaultFile(vault, result.fileEmbedding.filepath);
-        //const slicedContent = content.slice(result.fileEmbedding.chunk.start, result.fileEmbedding.chunk.end);
+        const offset = 40
 
-        //const start = result.fileEmbedding.chunk.start + result.fileEmbedding.chunk.overlap;
-        //const end = result.fileEmbedding.chunk.end - result.fileEmbedding.chunk.overlap;
+        const sliceStart = Math.max(0, result.fileEmbedding.chunk.start - offset)
+        const sliceEnd = Math.min(content.length, result.fileEmbedding.chunk.end + offset)
+        const slicedContent = content.slice(sliceStart, sliceEnd);
+
+        const highlightStart = offset
+        const highlighEnd = slicedContent.length - offset
 
 
         finalResults.push({
             filepath: result.fileEmbedding.filepath,
             score: result.similarity,
-            text: content,
-            start: result.fileEmbedding.chunk.start,
-            end: result.fileEmbedding.chunk.end,
+            text: slicedContent,
+            //start: result.fileEmbedding.chunk.start,
+            //end: result.fileEmbedding.chunk.end,
+            start: highlightStart,
+            end: highlighEnd,
         } as SearchResult);
     }
 
