@@ -1,4 +1,7 @@
-import {DropdownComponent, ItemView, SearchComponent, setIcon, Setting, TFile, WorkspaceLeaf} from "obsidian";
+import {debounce, ItemView, SearchComponent, setIcon, TFile, type Vault, WorkspaceLeaf} from "obsidian";
+import {search_embedding_query} from "../search_embedding_query";
+import type {EmbeddingStorage} from "../services/impl/embeddingStorage";
+import type {Chunk} from "../../libraries/types/chunk";
 
 export const SEARCH_VIEW_TYPE = "simeon-search-view";
 export const COUNT_VIEW_TYPE = "simeon-count-view";
@@ -16,7 +19,11 @@ export class SearchView extends ItemView {
     private resultsContainer?: HTMLElement;
     private resultsCountEl?: HTMLElement;
 
-    constructor(leaf: WorkspaceLeaf) {
+    constructor(
+        leaf: WorkspaceLeaf,
+        private readonly vault: Vault,
+        private readonly embeddingStore: EmbeddingStorage,
+    ) {
         super(leaf);
         this.icon = "search";
     }
@@ -36,12 +43,17 @@ export class SearchView extends ItemView {
         // --- Search Input Row ---
         const searchRow = container.createDiv({cls: "search-row"});
 
+        const debounced = debounce(
+            /* HAS TO BE LIKE THIS TO CAPTURE THE `this` */
+            (value: string) => this.performSearch(value),
+            1000,
+            true
+        )
+
         // The SearchComponent creates its own container div. We will add classes to it.
         this.searchInput = new SearchComponent(searchRow)
             .setPlaceholder("Search...")
-            .onChange((value) => {
-                this.performSearch(value);
-            })
+            .onChange(async (value) => await debounced(value))
         ;
         this.searchInput.containerEl.addClasses(["search-input-container", "global-search-input-container"]);
 
@@ -61,26 +73,20 @@ export class SearchView extends ItemView {
             return;
         }
 
-        const lowerCaseQuery = query.toLowerCase();
-        const files = this.app.vault.getMarkdownFiles();
-        const results: SearchResult[] = [];
+        const results = await search_embedding_query(this.vault, this.embeddingStore, query);
 
-        for (const file of files) {
-            const content = await this.app.vault.cachedRead(file);
-            const lines = content.split("\n");
-
-            for (const line of lines) {
-                const matchIndex = line.toLowerCase().indexOf(lowerCaseQuery);
-                if (matchIndex > -1) {
-                    results.push({
-                        file: file,
-                        content: line,
-                        match: {position: [matchIndex, matchIndex + query.length]}
-                    });
-                }
+        const mappedResults: SearchResult[] = results.map(result => ({
+            file: this.vault.getAbstractFileByPath(result.filepath) as TFile,
+            content: result.text,
+            match: {
+                position: [
+                    result.start,
+                    result.end
+                ]
             }
-        }
-        this.displayResults(results);
+        }));
+
+        this.displayResults(mappedResults);
     }
 
     displayResults(results: SearchResult[]) {
