@@ -1,6 +1,7 @@
 import {DropdownComponent, ItemView, SearchComponent, setIcon, Setting, TFile, WorkspaceLeaf} from "obsidian";
 
-export const SEARCH_VIEW_TYPE = "search-view";
+export const SEARCH_VIEW_TYPE = "simeon-search-view";
+export const COUNT_VIEW_TYPE = "simeon-count-view";
 
 interface SearchResult {
     file: TFile;
@@ -25,7 +26,7 @@ export class SearchView extends ItemView {
     }
 
     override getDisplayText() {
-        return "Example Search";
+        return "Search with Simeon";
     }
 
     override async onOpen() {
@@ -48,14 +49,6 @@ export class SearchView extends ItemView {
         const resultsInfoContainer = container.createDiv({cls: "search-results-info"});
         this.resultsCountEl = resultsInfoContainer.createDiv({cls: "search-results-result-count"});
         this.resultsCountEl.createSpan({text: "No results"});
-
-        new DropdownComponent(resultsInfoContainer)
-            .addOption("alphabetical", "File name (A to Z)")
-            .addOption("alphabeticalReverse", "File name (Z to A)")
-            .addOption("byModifiedTime", "Modified time (new to old)")
-            .addOption("byModifiedTimeReverse", "Modified time (old to new)")
-            .addOption("byCreatedTime", "Created time (new to old)")
-            .addOption("byCreatedTimeReverse", "Created time (old to new)");
 
         // --- Results Container ---
         const searchResultContainer = container.createDiv({cls: "search-result-container mod-global-search"});
@@ -84,8 +77,6 @@ export class SearchView extends ItemView {
                         content: line,
                         match: {position: [matchIndex, matchIndex + query.length]}
                     });
-                    // For simplicity, we only take the first match per file
-                    break;
                 }
             }
         }
