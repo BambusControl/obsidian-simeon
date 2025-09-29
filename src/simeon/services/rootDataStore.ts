@@ -1,4 +1,4 @@
-import {EmbeddingData} from "../../libraries/types/savedata/embeddingData";
+import {type EmbeddingData} from "../../libraries/types/savedata/embeddingData";
 
 export interface RootDataStore {
     isInitialized(): Promise<boolean>;

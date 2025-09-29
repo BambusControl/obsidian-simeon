@@ -1,5 +1,5 @@
 import {SimeonError} from "../../simeon/errors/simeonError";
-import {MaybePromise} from "./maybePromise";
+import {type MaybePromise} from "./maybePromise";
 
 export class PersistCache<T> {
     private value?: T;

@@ -1,5 +1,5 @@
 import {Plugin} from "obsidian";
-import {SaveData} from "../types/savedata/saveData";
+import type {SaveData} from "../types/savedata/saveData";
 import {initializationData} from "../data/initializationData";
 import {isTypeSaveData} from "./isTypeSaveData";
 

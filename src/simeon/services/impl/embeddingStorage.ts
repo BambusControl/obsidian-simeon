@@ -1,6 +1,6 @@
-import {RootDataStore} from "../rootDataStore";
-import {EmbeddingStore} from "../embeddingStore";
-import {FileEmbedding} from "../../../libraries/types/fileEmbedding";
+import type {RootDataStore} from "../rootDataStore";
+import type {EmbeddingStore} from "../embeddingStore";
+import type {FileEmbedding} from "../../../libraries/types/fileEmbedding";
 
 export function numArrayToBase64String(arr: Array<number>): string {
     const buffer: ArrayBufferLike = new Float64Array(arr).buffer;

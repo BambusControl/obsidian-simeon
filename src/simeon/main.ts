@@ -1,4 +1,4 @@
-import {addIcon, App, Plugin, type PluginManifest, type WorkspaceLeaf} from "obsidian";
+import {addIcon, App, normalizePath, Notice, Plugin, type PluginManifest, type WorkspaceLeaf} from "obsidian";
 import {SettingTab} from "./components/settingTab";
 import {RootPluginDataStorage} from "./services/impl/rootPluginDataStorage";
 import {NewDataInitializer} from "./services/impl/newDataInitializer";
@@ -13,6 +13,7 @@ import {CounterView} from "./components/counterView";
 import {COUNT_VIEW_TYPE, SEARCH_VIEW_TYPE, SearchView} from "./components/searchView";
 import {search_embedding_query} from "./search_embedding_query";
 import {splitIntoChunksFancy} from "./splitIntoChunksFancy";
+import {splitIntoChunksTrivial} from "./splitIntoChunksTrivial";
 
 /* Used by Obsidian */
 // noinspection JSUnusedGlobalSymbols
@@ -107,21 +108,24 @@ export default class SimeonPlugin extends Plugin {
             callback: async () => {
                 const files = this.app.vault.getMarkdownFiles();
                 const toWrite: FileEmbedding[] = new Array(50);
+                let fileCount = 0;
                 let toWriteCount = 0;
                 const jobsToWait = [];
+
+                let notificationContent = "Creating simeon index\n"
+                const notice = new Notice(notificationContent, 0);
 
                 console.group("Creating search index");
 
                 for (const file of files) {
+                    fileCount++;
+                    notice.setMessage(notificationContent + `${Math.floor(100 * fileCount / files.length)}% (${fileCount}/${files.length})`);
                     const contents = await this.app.vault.cachedRead(file);
 
-                    const chunks = [...splitIntoChunksFancy(contents)]
-                    console.log(`Processing ${file.path}`, {chunks});
-
-                    /* for (const chunk of chunks) {
+                    for (const chunk of splitIntoChunksFancy(contents)) {
                         const chunkEmbedding = await fetchEmbedding(chunk.content, false);
 
-                        const vectorData = {
+                        toWrite[toWriteCount++] = {
                             filepath: normalizePath(file.path),
                             chunk: {
                                 ...chunk,
@@ -129,12 +133,10 @@ export default class SimeonPlugin extends Plugin {
                             }
                         } as FileEmbedding;
 
-                        toWrite[toWriteCount++] = vectorData;
-
                         if (toWriteCount === 50) {
                             jobsToWait.push(embeddingStore.overwriteFileEmbeddings(Array.from(toWrite)));
                         }
-                    } */
+                    }
 
                 }
 
@@ -144,6 +146,7 @@ export default class SimeonPlugin extends Plugin {
                 console.log("Waiting for all jobs to finish");
                 await Promise.all(jobsToWait);
                 console.log("Done");
+                notice.hide()
 
                 console.groupEnd();
             },

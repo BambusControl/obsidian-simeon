@@ -1,4 +1,4 @@
-import {FileEmbedding} from "../../libraries/types/fileEmbedding";
+import type {FileEmbedding} from "../../libraries/types/fileEmbedding";
 
 export interface EmbeddingStore {
     getFileEmbeddings(): Promise<Array<FileEmbedding>>;

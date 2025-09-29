@@ -1,8 +1,8 @@
 import {CHUNK_OVERLAP, CHUNK_SIZE} from "./constants";
-import type {Chunk} from "../libraries/types/chunk";
+import type {StringChunk} from "../libraries/types/stringChunk";
 
 
-export function* splitIntoChunks(content: string): Generator<Chunk, number, void> {
+export function* splitIntoChunks(content: string): Generator<StringChunk, number, void> {
     let chunkCount = 0;
 
     for (let i = 0; i < content.length; i += CHUNK_SIZE - CHUNK_OVERLAP) {
@@ -11,10 +11,12 @@ export function* splitIntoChunks(content: string): Generator<Chunk, number, void
 
         yield {
             chunkNo: chunkCount,
-            start: i,
-            end: i + CHUNK_SIZE,
+            range: {
+                from: i,
+                to: i + CHUNK_SIZE,
+            },
             content: slicedString
-        } as Chunk;
+        } as StringChunk;
 
         chunkCount++;
     }

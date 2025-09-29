@@ -1,4 +1,4 @@
-import {CURRENT_VERSION, SaveData} from "../types/savedata/saveData";
+import {CURRENT_VERSION, type SaveData} from "../types/savedata/saveData";
 
 export function initializationData(): SaveData {
     return {

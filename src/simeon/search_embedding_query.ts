@@ -5,6 +5,7 @@ import {cosineSimilarity} from "./cosineSimilarity";
 import {readVaultFile} from "./readVaultFile";
 import type {Vault} from "obsidian";
 import type {SearchResult} from "./search_result";
+import {SimeonError} from "./errors/simeonError";
 
 interface QueryResult {
     fileEmbedding: FileEmbedding,
@@ -39,15 +40,22 @@ export async function search_embedding_query(vault: Vault, embeddingStore: Embed
     const finalResults = [];
 
     for (const result of topScores) {
-        const content = await readVaultFile(vault, result.fileEmbedding.filepath);
+        const file = vault.getFileByPath(result.fileEmbedding.filepath);
+
+        if (file == null) {
+            throw new SimeonError(`File not found: ${result.fileEmbedding.filepath}`);
+        }
+
+        const content = await vault.cachedRead(file);
+
         const offset = 40
 
-        const sliceStart = Math.max(0, result.fileEmbedding.chunk.start - offset)
-        const sliceEnd = Math.min(content.length, result.fileEmbedding.chunk.end + offset)
+        const sliceStart = Math.max(0, result.fileEmbedding.chunk.range.from - offset)
+        const sliceEnd = Math.min(content.length, result.fileEmbedding.chunk.range.to + offset)
         const slicedContent = content.slice(sliceStart, sliceEnd);
 
         const highlightStart = offset
-        const highlighEnd = slicedContent.length - offset
+        const highlightEnd = slicedContent.length - offset
 
         finalResults.push({
             filepath: result.fileEmbedding.filepath,
@@ -55,12 +63,12 @@ export async function search_embedding_query(vault: Vault, embeddingStore: Embed
             content: slicedContent,
             chunkId: result.fileEmbedding.chunk.chunkNo,
             match: {
-                from: result.fileEmbedding.chunk.start,
-                to: result.fileEmbedding.chunk.end,
+                from: result.fileEmbedding.chunk.range.from,
+                to: result.fileEmbedding.chunk.range.to,
             },
             highlight: {
                 from: highlightStart,
-                to: highlighEnd,
+                to: highlightEnd,
             }
         } as SearchResult);
     }

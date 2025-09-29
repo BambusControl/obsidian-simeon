@@ -1,4 +1,4 @@
-import {SaveData} from "../types/savedata/saveData";
+import {type SaveData} from "../types/savedata/saveData";
 
 export function isTypeSaveData(object: Partial<SaveData>): object is SaveData {
     return object != null

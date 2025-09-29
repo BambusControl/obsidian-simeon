@@ -52,6 +52,8 @@ export class SearchView extends ItemView {
             .setPlaceholder("Search...")
             .onChange(async (value) => await debounced(value))
         ;
+
+        //@ts-ignore
         this.searchInput.containerEl.addClasses(["search-input-container", "global-search-input-container"]);
 
         // --- Results Info Bar ---
@@ -76,8 +78,6 @@ export class SearchView extends ItemView {
     }
 
     displayResults(results: SearchResult[]) {
-        // TODO: add the similarity score to the results
-
         this.resultsContainer.empty();
         this.resultsCountEl.children[0].setText(`${results.length} result${results.length !== 1 ? "s" : ""}`);
 
@@ -97,7 +97,7 @@ export class SearchView extends ItemView {
             const fileResults = resultsByFile[filepath];
 
             const file = this.app.vault.getFileByPath(filepath);
-            if (!file) {
+            if (file == null) {
                 throw new SimeonError(`File not found: ${filepath}`);
             }
 
@@ -121,6 +121,8 @@ export class SearchView extends ItemView {
             });
 
             for (const result of fileResults) {
+
+                matchesEl.createDiv({text: `Score: ${result.score.toFixed(2)}`});
                 const snippetEl = matchesEl.createDiv({cls: "search-result-file-match tappable"});
 
                 const before = result.content.substring(0, result.highlight.from);
@@ -133,7 +135,7 @@ export class SearchView extends ItemView {
 
                 snippetEl.addEventListener("click", () => {
                     //this.app.workspace.getLeaf().openFile(result.file);
-                    openFileAndHighlight(this.app, file, result.matchStart, result.matchEnd)
+                    openFileAndHighlight(this.app, file, result.match.from, result.match.to)
                 });
             }
         }

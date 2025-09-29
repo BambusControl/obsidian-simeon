@@ -1,6 +1,6 @@
-import {Chunk} from "./chunk";
+import type {StringChunk} from "./stringChunk";
 
 export interface FileEmbeddingBinary {
     filepath: string;
-    chunk: Chunk;
+    chunk: StringChunk;
 }

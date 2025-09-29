@@ -1,5 +1,5 @@
-import {RootDataStore} from "../rootDataStore";
-import {DataInitializer} from "../dataInitializer";
+import {type RootDataStore} from "../rootDataStore";
+import {type DataInitializer} from "../dataInitializer";
 import {initializationData} from "../../../libraries/data/initializationData";
 
 export class NewDataInitializer implements DataInitializer {

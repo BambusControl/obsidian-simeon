@@ -1,16 +1,16 @@
 import {Splitter} from "llm-text-splitter";
-import type {Chunk} from "../libraries/types/chunk";
+import type {StringChunk} from "../libraries/types/stringChunk";
 import {getFrontMatterInfo} from "obsidian";
 
 const llmSplitter = new Splitter({
-    minLength: 4,
-    maxLength: 400,
-    overlap: 40,
-    splitter: "paragraph",
+    minLength: 5,
+    maxLength: 1000,
+    overlap: 50,
+    splitter: "markdown",
     removeExtraSpaces: false,
 });
 
-export function* splitIntoChunksFancy(content: string): Generator<Chunk, number, void> {
+export function* splitIntoChunksFancy(content: string): Generator<StringChunk, number, void> {
     let chunkCount = 0;
     let currentPosition = 0;
 
@@ -19,10 +19,12 @@ export function* splitIntoChunksFancy(content: string): Generator<Chunk, number,
     if (frontMatter.exists) {
         const f = {
             chunkNo: chunkCount,
-            start: frontMatter.from,
-            end: frontMatter.to,
+            range: {
+                from: frontMatter.from,
+                to: frontMatter.to,
+            },
             content: frontMatter.frontmatter
-        } as Chunk;
+        } as StringChunk;
 
         currentPosition = frontMatter.contentStart;
         chunkCount++;
@@ -52,10 +54,12 @@ export function* splitIntoChunksFancy(content: string): Generator<Chunk, number,
 
         const f = {
             chunkNo: chunkCount,
-            start: offset + splitStart,
-            end: offset + splitEnd,
+            range: {
+                from: offset + splitStart,
+                to: offset + splitEnd,
+            },
             content: split
-        } as Chunk;
+        } as StringChunk;
 
         chunkCount++;
 

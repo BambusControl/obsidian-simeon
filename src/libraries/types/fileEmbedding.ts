@@ -1,6 +1,6 @@
-import {Chunk} from "./chunk";
+import type {EmbeddingChunk} from "./embeddingChunk";
 
 export interface FileEmbedding {
     filepath: string;
-    chunk: Chunk<number[]>
+    chunk: EmbeddingChunk
 }

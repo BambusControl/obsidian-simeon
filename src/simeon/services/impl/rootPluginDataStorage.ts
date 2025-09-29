@@ -1,9 +1,9 @@
 import {PersistCache} from "../../../libraries/types/persistCache";
-import {CURRENT_VERSION, SaveData} from "../../../libraries/types/savedata/saveData";
-import {PluginDataLoader} from "../../../libraries/types/pluginDataLoader";
+import {CURRENT_VERSION, type SaveData} from "../../../libraries/types/savedata/saveData";
+import {type PluginDataLoader} from "../../../libraries/types/pluginDataLoader";
 import {importData} from "../../../libraries/helpers/importData";
-import {RootDataStore} from "../rootDataStore";
-import {EmbeddingData} from "../../../libraries/types/savedata/embeddingData";
+import {type RootDataStore} from "../rootDataStore";
+import {type EmbeddingData} from "../../../libraries/types/savedata/embeddingData";
 
 export class RootPluginDataStorage implements RootDataStore {
 

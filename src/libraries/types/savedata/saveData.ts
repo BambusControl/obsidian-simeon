@@ -1,5 +1,5 @@
-import {Initializable} from "./initializable";
-import {EmbeddingData} from "./embeddingData";
+import {type Initializable} from "./initializable";
+import {type EmbeddingData} from "./embeddingData";
 
 export interface SaveData extends Initializable {
     version: SaveDataVersion;
