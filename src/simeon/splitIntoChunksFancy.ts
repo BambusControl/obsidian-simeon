@@ -1,17 +1,16 @@
 import {Splitter} from "llm-text-splitter";
-import {CHUNK_OVERLAP, CHUNK_SIZE} from "./constants";
 import type {Chunk} from "../libraries/types/chunk";
 import {getFrontMatterInfo} from "obsidian";
 
 const llmSplitter = new Splitter({
-    minLength: 40,
+    minLength: 4,
     maxLength: 400,
     overlap: 40,
-    splitter: "sentence",
+    splitter: "paragraph",
+    removeExtraSpaces: false,
 });
 
-export function* splitIntoChunksFancy(content: string): Generator<Chunk<string>, number, void> {
-    console.group("Chunks")
+export function* splitIntoChunksFancy(content: string): Generator<Chunk, number, void> {
     let chunkCount = 0;
     let currentPosition = 0;
 
@@ -22,9 +21,8 @@ export function* splitIntoChunksFancy(content: string): Generator<Chunk<string>,
             chunkNo: chunkCount,
             start: frontMatter.from,
             end: frontMatter.to,
-            overlap: CHUNK_OVERLAP,
             content: frontMatter.frontmatter
-        } as Chunk<string>;
+        } as Chunk;
 
         currentPosition = frontMatter.contentStart;
         chunkCount++;
@@ -40,25 +38,29 @@ export function* splitIntoChunksFancy(content: string): Generator<Chunk<string>,
     //const pairedSplits = pairItems(splits, 3);
 
     for (const split of splits) {
-        const splitStart = content.indexOf(split, currentPosition);
+        const splitStart = justContent.indexOf(split);
+
+        if (splitStart === -1) {
+            console.error("Split not found in content", {
+                hay: justContent,
+                needle: split,
+            });
+            continue;
+        }
+
         const splitEnd = splitStart + split.length;
 
         const f = {
             chunkNo: chunkCount,
             start: offset + splitStart,
             end: offset + splitEnd,
-            overlap: CHUNK_OVERLAP,
             content: split
-        } as Chunk<string>;
+        } as Chunk;
 
-
-        currentPosition = splitEnd;
         chunkCount++;
 
-        //console.log(f)
         yield f;
     }
-    console.groupEnd();
 
     return chunkCount;
 }

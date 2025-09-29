@@ -4,20 +4,13 @@ import type {FileEmbedding} from "../libraries/types/fileEmbedding";
 import {cosineSimilarity} from "./cosineSimilarity";
 import {readVaultFile} from "./readVaultFile";
 import type {Vault} from "obsidian";
+import type {SearchResult} from "./search_result";
 
 interface QueryResult {
     fileEmbedding: FileEmbedding,
     similarity: number
 }
 
-
-type SearchResult = {
-    filepath: string;
-    score: number;
-    text: string
-    start: number;
-    end: number;
-};
 
 export async function search_embedding_query(vault: Vault, embeddingStore: EmbeddingStorage, searchString: string): Promise<SearchResult[]> {
     const embeddingRequest = fetchEmbedding(searchString, true);
@@ -56,15 +49,19 @@ export async function search_embedding_query(vault: Vault, embeddingStore: Embed
         const highlightStart = offset
         const highlighEnd = slicedContent.length - offset
 
-
         finalResults.push({
             filepath: result.fileEmbedding.filepath,
             score: result.similarity,
-            text: slicedContent,
-            //start: result.fileEmbedding.chunk.start,
-            //end: result.fileEmbedding.chunk.end,
-            start: highlightStart,
-            end: highlighEnd,
+            content: slicedContent,
+            chunkId: result.fileEmbedding.chunk.chunkNo,
+            match: {
+                from: result.fileEmbedding.chunk.start,
+                to: result.fileEmbedding.chunk.end,
+            },
+            highlight: {
+                from: highlightStart,
+                to: highlighEnd,
+            }
         } as SearchResult);
     }
 

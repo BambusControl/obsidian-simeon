@@ -1,4 +1,4 @@
-import {addIcon, App, normalizePath, Plugin, type PluginManifest, type WorkspaceLeaf} from "obsidian";
+import {addIcon, App, Plugin, type PluginManifest, type WorkspaceLeaf} from "obsidian";
 import {SettingTab} from "./components/settingTab";
 import {RootPluginDataStorage} from "./services/impl/rootPluginDataStorage";
 import {NewDataInitializer} from "./services/impl/newDataInitializer";
@@ -114,9 +114,11 @@ export default class SimeonPlugin extends Plugin {
 
                 for (const file of files) {
                     const contents = await this.app.vault.cachedRead(file);
-                    console.log(`Processing ${file.path}`);
 
-                    for (const chunk of splitIntoChunksFancy(contents)) {
+                    const chunks = [...splitIntoChunksFancy(contents)]
+                    console.log(`Processing ${file.path}`, {chunks});
+
+                    /* for (const chunk of chunks) {
                         const chunkEmbedding = await fetchEmbedding(chunk.content, false);
 
                         const vectorData = {
@@ -132,7 +134,7 @@ export default class SimeonPlugin extends Plugin {
                         if (toWriteCount === 50) {
                             jobsToWait.push(embeddingStore.overwriteFileEmbeddings(Array.from(toWrite)));
                         }
-                    }
+                    } */
 
                 }
 

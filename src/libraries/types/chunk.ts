@@ -1,7 +1,6 @@
-export interface Chunk<T> {
+export interface Chunk{
     chunkNo: number;
     start: number;
     end: number;
-    overlap: number;
-    content: T;
+    content: string;
 }

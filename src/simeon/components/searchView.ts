@@ -1,24 +1,20 @@
-import {debounce, ItemView, SearchComponent, setIcon, TFile, type Vault, WorkspaceLeaf} from "obsidian";
+import {debounce, ItemView, SearchComponent, setIcon, type Vault, WorkspaceLeaf} from "obsidian";
 import {search_embedding_query} from "../search_embedding_query";
 import type {EmbeddingStorage} from "../services/impl/embeddingStorage";
-import type {Chunk} from "../../libraries/types/chunk";
 import {openFileAndHighlight} from "../openFileAndHighlight";
+import type {SearchResult} from "../search_result";
+import {SimeonError} from "../errors/simeonError";
 
 export const SEARCH_VIEW_TYPE = "simeon-search-view";
 export const COUNT_VIEW_TYPE = "simeon-count-view";
 
-interface SearchResult {
-    file: TFile;
-    content: string;
-    match: {
-        position: [number, number];
-    };
-}
-
 export class SearchView extends ItemView {
-    private searchInput?: SearchComponent;
-    private resultsContainer?: HTMLElement;
-    private resultsCountEl?: HTMLElement;
+    //@ts-ignore
+    private searchInput: SearchComponent;
+    //@ts-ignore
+    private resultsContainer: HTMLElement;
+    //@ts-ignore
+    private resultsCountEl: HTMLElement;
 
     constructor(
         leaf: WorkspaceLeaf,
@@ -76,18 +72,7 @@ export class SearchView extends ItemView {
 
         const results = await search_embedding_query(this.vault, this.embeddingStore, query);
 
-        const mappedResults: SearchResult[] = results.map(result => ({
-            file: this.vault.getAbstractFileByPath(result.filepath) as TFile,
-            content: result.text,
-            match: {
-                position: [
-                    result.start,
-                    result.end
-                ]
-            }
-        }));
-
-        this.displayResults(mappedResults);
+        this.displayResults(results);
     }
 
     displayResults(results: SearchResult[]) {
@@ -102,15 +87,20 @@ export class SearchView extends ItemView {
 
         const resultsByFile: Record<string, SearchResult[]> = {};
         for (const result of results) {
-            if (!resultsByFile[result.file.path]) {
-                resultsByFile[result.file.path] = [];
+            if (!resultsByFile[result.filepath]) {
+                resultsByFile[result.filepath] = [];
             }
-            resultsByFile[result.file.path].push(result);
+            resultsByFile[result.filepath].push(result);
         }
 
-        for (const filePath in resultsByFile) {
-            const fileResults = resultsByFile[filePath];
-            const file = fileResults[0].file;
+        for (const filepath in resultsByFile) {
+            const fileResults = resultsByFile[filepath];
+
+            const file = this.app.vault.getFileByPath(filepath);
+            if (!file) {
+                throw new SimeonError(`File not found: ${filepath}`);
+            }
+
 
             const fileGroupEl = this.resultsContainer.createDiv({cls: "tree-item search-result"});
             const fileHeaderEl = fileGroupEl.createDiv({cls: "tree-item-self search-result-file-title is-clickable"});
@@ -133,9 +123,9 @@ export class SearchView extends ItemView {
             for (const result of fileResults) {
                 const snippetEl = matchesEl.createDiv({cls: "search-result-file-match tappable"});
 
-                const before = result.content.substring(0, result.match.position[0]);
-                const matched = result.content.substring(result.match.position[0], result.match.position[1]);
-                const after = result.content.substring(result.match.position[1]);
+                const before = result.content.substring(0, result.highlight.from);
+                const matched = result.content.substring(result.highlight.from, result.highlight.to);
+                const after = result.content.substring(result.highlight.to);
 
                 snippetEl.createSpan({text: before});
                 snippetEl.createSpan({text: matched, cls: "search-result-file-matched-text"});
@@ -143,7 +133,7 @@ export class SearchView extends ItemView {
 
                 snippetEl.addEventListener("click", () => {
                     //this.app.workspace.getLeaf().openFile(result.file);
-                    openFileAndHighlight(this.app, result.file, result.match.position[0], result.match.position[1])
+                    openFileAndHighlight(this.app, file, result.matchStart, result.matchEnd)
                 });
             }
         }

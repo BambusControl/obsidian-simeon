@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { SearchComponent } from "obsidian";
 
     interface Props {
         startCount: number;

@@ -22,7 +22,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@langchain/textsplitters": "^0.1.0",
-    "llm-text-splitter": "^0.1.0"
+    "llm-text-splitter": "^0.1.0",
+    "remark-parse": "^11.0.0",
+    "unified": "^11.0.5"
   },
   "devDependencies": {
     "@types/jest": "^29",
