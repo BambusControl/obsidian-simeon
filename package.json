@@ -8,7 +8,8 @@
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
     "export-schema": "typescript-json-schema --required --strictNullChecks --validationKeywords --ignoreErrors --refs --id https://raw.githubusercontent.com/BambusControl/obsidian-simeon/0.1.0/resources/save-data-schema.json --out ./resources/save-data-schema.json tsconfig.json SaveData",
     "svelte-check": "svelte-check --tsconfig tsconfig.json",
-    "test": "jest"
+    "test": "jest",
+    "postinstall": "patch-package"
   },
   "keywords": [
     "obsidian"
@@ -21,7 +22,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "llm-text-splitter": "^0.1.0"
+    "@huggingface/transformers": "^3.8.1",
+    "llm-text-splitter": "^0.1.0",
+    "onnxruntime-web": "^1.23.2"
   },
   "devDependencies": {
     "@types/jest": "^29",
@@ -34,6 +37,7 @@
     "esbuild-svelte": "^0.9.3",
     "jest": "^29",
     "obsidian": "latest",
+    "patch-package": "^8.0.1",
     "svelte": "^5.35.2",
     "svelte-check": "^4.2.2",
     "svelte-preprocess": "^6.0.3",

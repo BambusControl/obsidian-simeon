@@ -1,11 +1,10 @@
 import {EmbeddingStorage} from "./services/impl/embeddingStorage";
-import {fetchEmbedding} from "./fetchEmbedding";
 import type {FileEmbedding} from "../libraries/types/fileEmbedding";
 import {cosineSimilarity} from "./cosineSimilarity";
-import {readVaultFile} from "./readVaultFile";
 import type {Vault} from "obsidian";
 import type {SearchResult} from "./search_result";
 import {SimeonError} from "./errors/simeonError";
+import {EmbeddingService} from "./embeddingService";
 
 interface QueryResult {
     fileEmbedding: FileEmbedding,
@@ -14,7 +13,7 @@ interface QueryResult {
 
 
 export async function search_embedding_query(vault: Vault, embeddingStore: EmbeddingStorage, searchString: string): Promise<SearchResult[]> {
-    const embeddingRequest = fetchEmbedding(searchString, true);
+    const embeddingRequest = (await EmbeddingService.getInstance()).localEmbedQuery(searchString);
     const fileEmbeddings = await embeddingStore.getFileEmbeddings();
 
     if (fileEmbeddings.length === 0) {
