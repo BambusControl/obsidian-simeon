@@ -9,6 +9,9 @@ import {CounterView} from "./components/counterView";
 import {COUNT_VIEW_TYPE, SEARCH_VIEW_TYPE, SearchView} from "./components/searchView";
 import {splitIntoChunksFancy} from "./splitIntoChunksFancy";
 import {EmbeddingService} from "./embeddingService";
+import * as ONNX from "onnxruntime-web"
+globalThis[Symbol.for('onnxruntime')] = ONNX
+
 import {AutoModel, AutoTokenizer, matmul} from "@huggingface/transformers";
 import {env} from '@huggingface/transformers';
 
@@ -103,9 +106,6 @@ export default class SimeonPlugin extends Plugin {
             id: "test",
             name: "Test",
             callback: async () => {
-                //env.backends.onnx = [
-                //    "onnxruntime-web"
-                //]
                 env.allowLocalModels = false;
 
                 console.log(env);

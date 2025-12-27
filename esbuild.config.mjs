@@ -31,10 +31,7 @@ const buildOptions = {
     outdir: outputDir,
     bundle: true,
     external: [
-        "sharp",
         "obsidian",
-        "electron",
-        "@codemirror/*",
         ...builtins,
     ],
     format: "cjs",
@@ -44,6 +41,7 @@ const buildOptions = {
     treeShaking: true,
     minify: prodBuild,
     plugins: [
+        onnxInjectorPlugin,
         sassPlugin({
             syntax: "scss",
             style: prodBuild ? "compressed" : "expanded",
